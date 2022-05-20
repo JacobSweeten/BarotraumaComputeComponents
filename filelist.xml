@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<contentpackage name="ComputeComponents" modversion="0.0.1" corepackage="False" gameversion="0.17.15.0">
+  <Item file="%ModDir%/Content/Items/Electricity/CPU.xml" />
+  <Item file="%ModDir%/Content/Items/Electricity/ROM.xml" />
+  <Text file="%ModDir%/Content/Texts/English/EnglishComputeComponents.xml" />
+  <Submarine file="%ModDir%/CPUTest.sub" />
+</contentpackage>

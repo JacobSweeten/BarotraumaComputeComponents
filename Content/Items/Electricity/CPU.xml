@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <Item name="" identifier="cpucomponent" category="Electrical" Tags="smallitem,logic" maxstacksize="8" cargocontaineridentifier="metalcrate" description="" scale="0.5" impactsoundtag="impact_metal_light" isshootable="true">
+    <Price baseprice="100">
+      <Price storeidentifier="merchantoutpost" />
+      <Price storeidentifier="merchantcity" sold="false"/>
+      <Price storeidentifier="merchantresearch" multiplier="1.25" />
+      <Price storeidentifier="merchantmilitary" />
+      <Price storeidentifier="merchantmine" />
+      <Price storeidentifier="merchantengineering" multiplier="0.9" />
+    </Price>
+    <PreferredContainer primary="reactorcab,storagecab" />
+    <PreferredContainer secondary="wreckreactorcab,abandonedreactorcab" minamount="0" maxamount="1" spawnprobability="0.06" />
+    <Deconstruct time="10">
+      <Item identifier="fpgacircuit" />
+      <Item identifier="tin" />
+    </Deconstruct>
+    <Fabricate suitablefabricators="fabricator" requiredtime="10">
+      <RequiredSkill identifier="electrical" level="20" />
+      <RequiredItem identifier="fpgacircuit" />
+      <RequiredItem identifier="tin" />
+    </Fabricate>
+    <InventoryIcon texture="%ModDir%/Content/Items/Electricity/cpu_inv.png" sourcerect="0,0,63,52" origin="0.5,0.5" />
+    <Sprite texture="%ModDir%/Content/Items/Electricity/cpu_icon.png" depth="0.8" sourcerect="0,0,32,32" origin="0.5,0.5" />
+    <Body width="31" height="25" density="30" />
+    <Holdable selectkey="Select" pickkey="Use" slots="Any,RightHand,LeftHand" msg="ItemMsgDetachWrench" PickingTime="5.0" aimpos="85,-10" handle1="0,0" attachable="true" aimable="true">
+      <RequiredItem items="wrench" type="Equipped" />
+    </Holdable>
+    <ConnectionPanel selectkey="Action" canbeselected="true" msg="ItemMsgRewireScrewdriver" hudpriority="10">
+      <GuiFrame relativesize="0.2,0.32" minsize="400,350" maxsize="480,420" anchor="Center" style="ConnectionPanel" />
+      <RequiredItem items="screwdriver" type="Equipped" />
+      <input name="clock_in" displayname="connection.clock_in" />
+      <input name="data_in" displayname="connection.data_in" />
+      <input name="interrupt_in" displayname="connection.interrupt_in" />
+      <output name="address_out" displayname="connection.address_out" />
+      <output name="data_out" displayname="connection.data_out" />
+      <output name="write_enable_out" displayname="connection.write_enable_out" />
+    </ConnectionPanel>
+  </Item>
+</Items>

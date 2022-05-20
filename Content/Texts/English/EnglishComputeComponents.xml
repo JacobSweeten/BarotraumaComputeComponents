@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<infotexts language="English" nowhitespace="false" translatedname="English">
+
+<entityname.cpucomponent>CPU Component</entityname.cpucomponent>
+<entitydescription.cpucomponent>A CPU for assembly programming. Requires a clock (Oscillator), a ROM component, and a RAM component.</entitydescription.cpucomponent>
+
+<entityname.romcomponent>ROM Component</entityname.romcomponent>
+<entitydescription.romcomponent>A ROM component for programming a CPU.</entitydescription.romcomponent>
+
+<connection.clock_in>Clock In</connection.clock_in>
+<connection.data_in>Data In</connection.data_in>
+<connection.interrupt_in>Interrupt In</connection.interrupt_in>
+<connection.address_in>Address In</connection.address_in>
+
+<connection.address_out>Address Out</connection.address_out>
+<connection.data_out>Data Out</connection.data_out>
+<connection.write_enable_out>Write Enable Out</connection.write_enable_out>
+
+</infotexts>
