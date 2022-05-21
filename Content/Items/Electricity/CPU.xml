@@ -29,6 +29,7 @@
     <ConnectionPanel selectkey="Action" canbeselected="true" msg="ItemMsgRewireScrewdriver" hudpriority="10">
       <GuiFrame relativesize="0.2,0.32" minsize="400,350" maxsize="480,420" anchor="Center" style="ConnectionPanel" />
       <RequiredItem items="screwdriver" type="Equipped" />
+      <input name="reset_in" displayname="connection.reset_in" />
       <input name="clock_in" displayname="connection.clock_in" />
       <input name="data_in" displayname="connection.data_in" />
       <input name="interrupt_in" displayname="connection.interrupt_in" />

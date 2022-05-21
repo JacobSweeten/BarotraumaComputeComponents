@@ -44,7 +44,9 @@ Hook.Add("signalReceived.cpucomponent", "signalReceivedCPU", function(signal, co
 	-- Add CPU to list
 	if CPUs[connection.Item] == nil then
 		CPUs[connection.Item] = {
-			registers = {},								-- Array of registers
+			registers = {								-- Array of registers
+				0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0},
 			PC = 0,										-- Program counter
 			flags = {									-- CPU Flags
 				overflow = false
@@ -85,7 +87,7 @@ Hook.Add("signalReceived.cpucomponent", "signalReceivedCPU", function(signal, co
 			elseif CPUData.state == CPUStates.EXEC_INSTRUCTION then
 				local instructionFinished = true	-- In case of memory read instructions
 				local incrementPC = true			-- In case of jump instructions
-				print("Executing instruction...")
+				print("Executing instruction: " .. CPUData.currentInstruction)
 
 				local instructionArr = split(CPUData.currentInstruction, " ")
 
@@ -100,6 +102,17 @@ Hook.Add("signalReceived.cpucomponent", "signalReceivedCPU", function(signal, co
 				elseif instructionArr[1] == "OUT" then
 					connection.Item.SendSignal(getRegister(CPUData, instructionArr[2]), "address_out")
 					connection.Item.SendSignal(getRegister(CPUData, instructionArr[3]), "data_out")
+					connection.Item.SendSignal("1", "write_enable_out")
+				elseif instructionArr[1] == "WRITEI" then
+					connection.Item.SendSignal(tostring(getRegister(CPUData, instructionArr[2])), "address_out")
+					connection.Item.SendSignal(instructionArr[3], "data_out")
+					connection.Item.SendSignal("1", "write_enable")
+				elseif instructionArr[1] == "WRITE" then
+					connection.Item.SendSignal(tostring(getRegister(CPUData, instructionArr[2])), "address_out")
+					connection.Item.SendSignal(tostring(getRegister(CPUData, instructionArr[3])), "data_out")
+					connection.Item.SendSignal("1", "write_enable")
+				elseif instructionArr[1] == "LOAD" then
+					connection.Item.SendSignal(tostring(getRegister(CPUData, instructionArr[2])), "address_out")
 				end
 				
 				-- Increment PC if not a jump instruction
@@ -125,5 +138,10 @@ Hook.Add("signalReceived.cpucomponent", "signalReceivedCPU", function(signal, co
 	elseif connection.Name == "interrupt_in" then
 		-- Read interrupt into buffer
 		CPUData.inputBuffer.interrupt_in = signal.value
+	elseif connection.Name == "reset_in" then
+		if tonumber(signal.value) == 1 then
+			-- Reset
+			CPUs[connection.Item] = nil
+		end
 	end
 end)

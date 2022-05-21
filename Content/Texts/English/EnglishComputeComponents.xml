@@ -7,10 +7,15 @@
 <entityname.romcomponent>ROM Component</entityname.romcomponent>
 <entitydescription.romcomponent>A ROM component for programming a CPU.</entitydescription.romcomponent>
 
+<entityname.ramcomponent>RAM Component</entityname.ramcomponent>
+<entitydescription.ramcomponent>A RAM component for storing data.</entitydescription.ramcomponent>
+
+<connection.reset_in>Reset In</connection.reset_in>
 <connection.clock_in>Clock In</connection.clock_in>
 <connection.data_in>Data In</connection.data_in>
 <connection.interrupt_in>Interrupt In</connection.interrupt_in>
 <connection.address_in>Address In</connection.address_in>
+<connection.write_enable_in>Write Enable In</connection.write_enable_in>
 
 <connection.address_out>Address Out</connection.address_out>
 <connection.data_out>Data Out</connection.data_out>
