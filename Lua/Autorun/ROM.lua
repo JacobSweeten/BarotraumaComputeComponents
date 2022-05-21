@@ -5,13 +5,13 @@ Hook.Add("signalreceived.romcomponent", "signalReceivedROM", function(signal, co
 	if ROMModules[connection.Item] == nil then
 		ROMModules[connection.Item] = {
 			data = {				-- Default instructions
-				"SET r0 5000",
+				"SET r0 5001",
 				"WRITEI r0 0",
 				"SET r1 1000",
 				"LOAD r0 r2",
 				"ADDI r2 r2 1",
 				"WRITE r0 r2",
-				"OUT r1 r2",
+				"WRITE r1 r2",
 				"JMP 3"
 			},
 			inputBuffer = {			-- Used to hold input data between clock cycles
@@ -27,8 +27,8 @@ Hook.Add("signalreceived.romcomponent", "signalReceivedROM", function(signal, co
 		if tonumber(signal.value) == 1 then
 			-- Rising edge
 			
-			-- Ignore until there is an address
-			if ROMData.inputBuffer.address_in == nil then
+			-- Ignore until there is a valid address
+			if ROMData.inputBuffer.address_in == nil or ROMData.inputBuffer.address_in < 0 or ROMData.inputBuffer.address_in > 1024 then
 				return
 			end
 			

@@ -2,11 +2,10 @@ local CPUs = {}
 
 -- Used to determine what to do each clock cycle
 local CPUStates = {
-	FETCH_INSTRUCTION_SIGOUT = 0,
+	FETCH_FIRST_INSTRUCTION = 0,
 	FETCH_INSTRUCTION_SIGIN = 1,
-	EXEC_INSTRUCTION = 2,
-	READ_MEMORY_SIGOUT = 3,
-	READ_MEMORY_SIGIN = 4,
+	WRITE_MEMORY_SIGOUT = 2,
+	READ_MEMORY_SIGIN = 3,
 }
 
 -- Helpful for parsing instructions
@@ -40,6 +39,14 @@ function getRegister(CPUData, reg)
 	return CPUData.registers[register]
 end
 
+function fetchInstruction(CPUItem, CPUData)
+	-- Send PC as address for memory read
+	CPUItem.SendSignal(tostring(CPUData.PC), "address_out")
+	print("Fetching instruction at address: " .. tostring(CPUData.PC))
+	-- Set CPU to read the instruction next clock cycle
+	CPUData.state = CPUStates.FETCH_INSTRUCTION_SIGIN
+end
+
 Hook.Add("signalReceived.cpucomponent", "signalReceivedCPU", function(signal, connection)
 	-- Add CPU to list
 	if CPUs[connection.Item] == nil then
@@ -51,7 +58,7 @@ Hook.Add("signalReceived.cpucomponent", "signalReceivedCPU", function(signal, co
 			flags = {									-- CPU Flags
 				overflow = false
 			},
-			state = CPUStates.FETCH_INSTRUCTION_SIGOUT,	-- CPU State
+			state = CPUStates.FETCH_FIRST_INSTRUCTION,	-- CPU State
 			inputBuffer = {								-- Used to hold input data between clock cycles
 				data_in = nil,
 				interrupt_in = nil
@@ -66,28 +73,21 @@ Hook.Add("signalReceived.cpucomponent", "signalReceivedCPU", function(signal, co
 	if connection.Name == "clock_in" then
 		if tonumber(signal.value) == 1 then
 			-- Rising edge
-			if CPUData.state == CPUStates.FETCH_INSTRUCTION_SIGOUT then
-				-- Send PC as address for memory read
-				connection.Item.SendSignal(tostring(CPUData.PC), "address_out")
-				print("Fetching instruction at address: " .. tostring(CPUData.PC))
-				-- Set CPU to read the instruction next clock cycle
-				CPUData.state = CPUStates.FETCH_INSTRUCTION_SIGIN
+			if CPUData.state == CPUStates.FETCH_FIRST_INSTRUCTION then
+				fetchInstruction(connection.Item, CPUData)
 			elseif CPUData.state == CPUStates.FETCH_INSTRUCTION_SIGIN then
 				-- Do nothing until data has been received
 				if CPUData.inputBuffer.data_in == nil then
 					return
 				end
 
+				local instructionFinished = true	-- In case of memory read instructions
+				local incrementPC = true			-- In case of jump instructions
+
 				-- Read in instruction
 				CPUData.currentInstruction = CPUData.inputBuffer.data_in
 				CPUData.inputBuffer.data_in = nil
 				print("Got instruction: " .. CPUData.currentInstruction)
-				-- Set CPU to execute instruction next clock cycle
-				CPUData.state = CPUStates.EXEC_INSTRUCTION
-			elseif CPUData.state == CPUStates.EXEC_INSTRUCTION then
-				local instructionFinished = true	-- In case of memory read instructions
-				local incrementPC = true			-- In case of jump instructions
-				print("Executing instruction: " .. CPUData.currentInstruction)
 
 				local instructionArr = split(CPUData.currentInstruction, " ")
 
@@ -99,20 +99,26 @@ Hook.Add("signalReceived.cpucomponent", "signalReceivedCPU", function(signal, co
 				elseif instructionArr[1] == "JMP" then
 					CPUData.PC = instructionArr[2]
 					incrementPC = false
-				elseif instructionArr[1] == "OUT" then
-					connection.Item.SendSignal(getRegister(CPUData, instructionArr[2]), "address_out")
-					connection.Item.SendSignal(getRegister(CPUData, instructionArr[3]), "data_out")
-					connection.Item.SendSignal("1", "write_enable_out")
 				elseif instructionArr[1] == "WRITEI" then
 					connection.Item.SendSignal(tostring(getRegister(CPUData, instructionArr[2])), "address_out")
 					connection.Item.SendSignal(instructionArr[3], "data_out")
-					connection.Item.SendSignal("1", "write_enable")
+					connection.Item.SendSignal("1", "write_enable_out")
+					CPUData.state = CPUStates.WRITE_MEMORY_SIGOUT
+					incrementPC = false
+					instructionFinished = false
 				elseif instructionArr[1] == "WRITE" then
 					connection.Item.SendSignal(tostring(getRegister(CPUData, instructionArr[2])), "address_out")
 					connection.Item.SendSignal(tostring(getRegister(CPUData, instructionArr[3])), "data_out")
-					connection.Item.SendSignal("1", "write_enable")
+					connection.Item.SendSignal("1", "write_enable_out")
+					CPUData.state = CPUStates.WRITE_MEMORY_SIGOUT
+					incrementPC = false
+					instructionFinished = false
 				elseif instructionArr[1] == "LOAD" then
 					connection.Item.SendSignal(tostring(getRegister(CPUData, instructionArr[2])), "address_out")
+					connection.Item.SendSignal("0", "write_enable_out")
+					CPUData.state = CPUStates.READ_MEMORY_SIGIN
+					incrementPC = false
+					instructionFinished = false
 				end
 				
 				-- Increment PC if not a jump instruction
@@ -121,9 +127,24 @@ Hook.Add("signalReceived.cpucomponent", "signalReceivedCPU", function(signal, co
 				end
 
 				if instructionFinished then
-					-- Set CPU to fetch next instruction on next clock cycle
-					CPUData.state = CPUStates.FETCH_INSTRUCTION_SIGOUT
+					fetchInstruction(connection.Item, CPUData)
 				end
+			elseif CPUData.state == CPUStates.WRITE_MEMORY_SIGOUT then
+				CPUData.PC = CPUData.PC + 1
+				fetchInstruction(connection.Item, CPUData)
+			elseif CPUData.state == CPUStates.READ_MEMORY_SIGIN then
+				-- Wait for data
+				if CPUData.inputBuffer.data_in == nil then
+					return
+				end
+
+				local instructionArr = split(CPUData.currentInstruction, " ")
+
+				setRegister(CPUData, instructionArr[3], CPUData.inputBuffer.data_in)
+				CPUData.inputBuffer.data_in = nil
+
+				CPUData.PC = CPUData.PC + 1
+				fetchInstruction(connection.Item, CPUData)
 			end
 		elseif tonumber(signal.value) == 0 then
 			-- Falling edge
@@ -132,8 +153,10 @@ Hook.Add("signalReceived.cpucomponent", "signalReceivedCPU", function(signal, co
 		end
 	elseif connection.Name == "data_in" then
 		-- Read data into buffer only when expecting data
-		if CPUData.state == CPUStates.FETCH_INSTRUCTION_SIGIN or CPUData.state == CPUStates.READ_MEMORY_SIGIN then
+		if CPUData.state == CPUStates.FETCH_INSTRUCTION_SIGIN then
 			CPUData.inputBuffer.data_in = signal.value
+		elseif CPUData.state == CPUStates.READ_MEMORY_SIGIN then
+			CPUData.inputBuffer.data_in = tonumber(signal.value)
 		end
 	elseif connection.Name == "interrupt_in" then
 		-- Read interrupt into buffer

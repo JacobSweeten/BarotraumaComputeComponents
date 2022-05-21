@@ -20,10 +20,9 @@ Adds compute components for building and programming computers in Barotrauma. Re
 ### Instruction Set
 - SET \[register\] \[immediate\]: Loads the immediate value into the register
 - ADDI \[register1\] \[register2\] \[immediate\]: Adds the immediate value to register 2 and stores the result in register 1
-- OUT \[register1\] \[register2\]: Sends data to the address in register 1 with the value of register 2
 - JMP \[address\]: Unconditional jump to address in memory
 - LOAD \[register1\] \[register2\]: Read the address in register 1 from memory and store it in register 2
-- WRITE \[register1\] \[register2\]: Write the value of register 2 to memory at the address in register 1 (Synonymous with OUT)
+- WRITE \[register1\] \[register2\]: Write the value of register 2 to memory at the address in register 1
 - WRITEI \[register\] \[immediate\]: Write the immediate value to memory at the address in the register
 
 ## Example code 1
@@ -32,7 +31,7 @@ The following increments r0 and outputs the result to address 1000 (Which can be
 SET r0 0
 SET r1 1000
 ADDI r0 r0 1
-OUT r1 r0
+WRITE r1 r0
 JMP 2
 ```
 
@@ -45,7 +44,7 @@ SET r1 1000
 LOAD r0 r2
 ADDI r2 r2 1
 WRITE r0 r2
-OUT r1 r2
+WRITE r1 r2
 JMP 3
 ```
 
@@ -56,4 +55,4 @@ JMP 3
 - (Optional) Wire a button to reset_in
 
 ### Memory and Peripherals
-At the moment, there isn't a good way to do memory mapping. Currently, the best setup is to use `greater`, `not`, `and`, `memory`, `signal check`, and `subtract` components to determine if an address should be sent to the address_in of a RAM component or ROM component. data_in and write_enable can be set regardless since they are dropped if no address is provided. Using this method, you can wire up as you want to as peripherals.
+Use a subtract component to assign memory ranges. For instance, to assign a RAM module to addresses 5000-6024, subtract 5000 from the address.

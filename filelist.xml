@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<contentpackage name="ComputeComponents" modversion="0.0.5" corepackage="False" gameversion="0.17.15.0">
+<contentpackage name="ComputeComponents" modversion="0.0.13" corepackage="False" gameversion="0.17.15.0">
   <Item file="%ModDir%/Content/Items/Electricity/CPU.xml" />
   <Item file="%ModDir%/Content/Items/Electricity/ROM.xml" />
   <Item file="%ModDir%/Content/Items/Electricity/RAM.xml" />
